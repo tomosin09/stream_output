@@ -1,41 +1,36 @@
-import cv2 as cv
+import cv2, time
 from threading import Thread
 
 
-# Class was taken from imutils by Adrian Rosebrock
-# https://github.com/jrosebr1/imutils/
+class VideoStream():
+    def __init__(self, stream_url=0):
+        self.stream = cv2.VideoCapture(stream_url)
+        self.stream.set(cv2.CAP_PROP_BUFFERSIZE, 2)
 
-class VideoStream:
-    def __init__(self, src=0, name='VideoStream'):
-        # Video stream initialization
-        self.stream = cv.VideoCapture(src)
         # The first variable returns True if frame is not None
-        (self.grabbed, self.frame) = self.stream.read()
+        (self.status, self.frame) = self.stream.read()
 
-        # Thread name initialization
-        self.name = name
+        # Инициализация значения FPS
+        self.FPS = 1 / 30
+        self.FPS_MS = int(self.FPS * 1000)
 
-        # Initializing a variable to stop the thread
-        self.stopped = False
-
-    # Function to start thread
-    def start(self):
-        t = Thread(target=self.update, name=self.name, args=())
-        t.daemon = True
-        t.start()
-        return self
+        # Инициализация потока
+        self.thread = Thread(target=self.update, args=())
+        self.thread.daemon = True
+        self.thread.start()
 
     def update(self):
-        while 1:
-            if self.stopped:
-                return
-            # read next frames if stop is False
-            (self.grabbed, self.frame) = self.stream.read()
+        while True:
+            if self.is_open():
+                (self.status, self.frame) = self.stream.read()
+            time.sleep(self.FPS)
 
-    # Function to get frame from VideoStream
-    def read(self):
+    def take_frame(self):
         return self.frame
 
-    # Function to stop thread
-    def stop(self):
-        self.stopped = True
+    def show_frame(self):
+        cv2.imshow('stream', self.frame)
+        cv2.waitKey(self.FPS_MS)
+
+    def is_open(self):
+        return self.stream.isOpened() and self.status
