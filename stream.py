@@ -25,12 +25,22 @@ class VideoStream():
                 (self.status, self.frame) = self.stream.read()
             time.sleep(self.FPS)
 
+    def take_size(self):
+        return [self.stream.get(cv2.CAP_PROP_FRAME_WIDTH), self.stream.get(cv2.CAP_PROP_FRAME_HEIGHT)]
+
     def take_frame(self):
         return self.frame
 
+    def take_fps(self):
+        return self.stream.get(cv2.CAP_PROP_FPS)
+
+    def take_pos(self):
+        return [self.stream.get(cv2.CAP_PROP_POS_MSEC), self.stream.get(cv2.CAP_PROP_POS_FRAMES)]
+
     def show_frame(self):
-        cv2.imshow('stream', self.frame)
-        cv2.waitKey(self.FPS_MS)
+        if self.frame is not None:
+            cv2.imshow('stream', self.frame)
+            cv2.waitKey(self.FPS_MS)
 
     def is_open(self):
         return self.stream.isOpened() and self.status
